@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+	    <meta charset="utf-8">
+		<title>Connect Four</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+
+		<script>
+			/* set the global variables so we can use them wihin functions */
+			var game_on = false; //  This will be used to prevent being able to win once the game is over
+			var current_player = 0; // the # of the active player( 1 or 2), Default is 0, meaning no active player
+			var grid = []; // define the grid as an array 
+			var player_color = []; //define player_color as an array
+			player_color[1] = "red"; //set the player_color for player 1 to "red" 
+			player_color[2] = "blue"; // set the player_color for player 2 to "blue"
+			
+			function startGame() {
+				//don't reset the game until the last one is done.  So if the game is still active, return (don't continue with
+				//the function)  When you return, the rest of the function is skipped, and the value you return will be
+				//passed to the function that called the function.  Since startGame is not called as a part of a different
+				//function, it doesn't matter if you return true or false.
+				// if (game_on == true) return false; 
+
+				game_on = true;  //We're starting the game, so make game_on = true
+				/* Reset the grid to be all 0.  We are going to use a multi-dimensional array - so every
+				section of the board will be represented by a point on the grid - X and Y (col and row).*/
+                
+				for (row=0; row<=5; row++) {
+					grid[row] = [];
+					for (col=0; col<=6; col++) {
+						grid[row][col] = 0;
+					}	
+				}		
+				
+				drawGrid(); // call the function to draw the grid.				
+				current_player = 1; //set the first player as their turn
+				playersTurn(); //get ready for the player's turn
+			}
+			
+			/* drawGrid will draw the grid - */
+            
+			function drawGrid() {
+				checkForWin(); //check to see if any player has won.
+				for (col = 0; col<=6; col++) {
+					for (row=0; row<=5; row++) {
+						//Set the inner HTML of the square (a td) to be a span with the class of 'piece' and 'player'   
+                    document.getElementById('square_'+row+'_'+col).innerHTML ="<span class='piece player"+grid[row][col]+"'> </span>";
+					}	
+				}
+			}
+			
+			function checkForWin() {
+				// check all possibility for a win.
+				// there are 4 ways to win - left-to-right, diagonal up, diagonal down, and top to bottom.  
+				
+				//check left-to-right
+				//check for player 1 and 2
+                
+				for (i=1; i<=2; i++) {
+					//since a winning row must be 4 long, we only need to check the first 3 rows, 0,1,and 2
+					for (col = 0; col <=3; col++) {
+						for (row = 0; row <=5; row++) {
+							//check to see if the grid item is set to the player we are checking, if so, lets check the next 3 for a match
+							if (grid[row][col] == i) {
+								if ((grid[row][col+1] == i) && (grid[row][col+2] == i) && (grid[row][col+3] == i)) {
+									endGame(i);//a match has been made, so run EndGame with the player that had the win
+									return true; //stop checking for a win - the game is over.
+								}
+							}
+						}
+					}
+				}
+				
+				//check top-to-bottom
+				for (i=1; i<=2; i++) {
+					//since a winning row must be 4 long, we only need to check the first 3 rows, 0,1,and 2
+					for (col = 0; col <=6; col++) {
+						for (row = 0; row <=2; row++) {
+							//check to see if the grid item is set to the player we are checking, if so, lets check the next 3 for a match
+							if (grid[row][col] == i) {
+								if ((grid[row+1][col] == i) && (grid[row+2][col] == i) && (grid[row+3][col] == i)) {
+									endGame(i); //a match has been made - run endGame for the player who had the match.
+									return true; //stop checking for a win - the game is over.
+								}
+							}
+						}
+					}
+				}
+				
+				//check diagonal down
+				for (i=1; i<=2; i++) {
+					//since a winning row must be 4 long, we only need to check the first 3 rows, 0,1,and 2
+					for (col = 0; col <=3; col++) {
+						//we also only need to check the bottom most columns - as the win must be upwards
+						for (row = 0; row <=2; row++) {
+							//check to see if the grid item is set to the player we are checking, if so, lets check the next 3 for a match
+							if (grid[row][col] == i) {
+								if ((grid[row+1][col+1] == i) && (grid[row+2][col+2] == i) && (grid[row+3][col+3] == i)) {
+									endGame(i);
+									return true;
+								}
+							}
+						}
+					}
+				}
+								
+				//check diagonal up
+				for (i=1; i<=2; i++) {
+					//since a winning row must be 4 long, we only need to check the first 3 rows, 0,1,and 2
+					for (col = 0; col <=3; col++) {
+						//we also only need to check the bottom most columns - as the win must be upwards
+						for (row = 3; row <=5; row++) {
+							//check to see if the grid item is set to the player we are checking, if so, lets check the next 3 for a match
+							if (grid[row][col] == i) {
+								if ((grid[row-1][col+1] == i) && (grid[row-2][col+2] == i) && (grid[row-3][col+3] == i)) {
+									endGame(i);
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			/* endGame will end the game */
+			function endGame(winningPlayer) {
+				game_on = false; //set the "game_on" to false, so that the game can be started again.
+                document.getElementById('game_info').innerHTML = "Winner: " + winningPlayer; //set the "game_info" to the winner and the winning player #
+                document.getElementById('output').innerHTML = "<h3> Game Over! </h3>"; // special announcement 
+                
+			}
+			
+			/* playersTurn will display who is the active player */
+			function playersTurn() {
+				if (game_on) { //only run this is the game is active.
+					//display the current player, and create a <span> with the class of the player# so that it will show the color.
+                    document.getElementById('game_info').innerHTML = "Current Player: Player " + current_player + " <span class='player"+current_player+"'>(" + player_color[current_player] + ")</span>"; // game_on
+				}
+			}			
+			
+			/* slot will add a piece to the lowest available column */
+			function slot(col) {
+					/* Look for the lowest point in this row that is open */
+					//the opposite of our loop above - as we're going to start from the bottom looking for an open slot
+					for (row=5; row>=0; row--) { //note: we are using row--, which will reduce the value of row by 1, the opposted of ++
+						if (grid[row][col] == 0) {
+							//set the empty row to the active player's number
+							grid[row][col] = current_player;
+							drawGrid(); // draw the board.
+							//change the active players turn:
+							if (current_player == 1) {
+								current_player = 2;
+							} else {
+								current_player = 1;
+							}
+														
+							playersTurn(); //display who is the active player
+
+							//stop looking for empty spaces
+							return true;
+						}
+					}
+			}
+			
+		</script>
+		
+		<style>
+            
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                background-color: RGB(213, 217, 210);
+            }
+
+            .game_table {
+                border: 1px solid black;
+                
+            }
+            
+            /* .click_button {
+				height: 42px;
+				width: 42px;
+				border-radius: 24px;
+				background-color: rgba(255,0,0,1);
+				cursor: pointer;
+            }
+             */
+          			
+			
+			.piece {
+				height: 85px;
+				width: 85px;
+				display:block;
+				border-radius: 50%;
+				margin-left: auto;
+				margin-right: auto;
+			}
+            
+			.player0 {
+				background-color: #DDDDDD; 
+			}
+			
+            .player1 {
+				background-color: #FF0000;
+			}
+			
+			.player2 {
+				background-color: #5656e4;	
+			}
+			
+			.board_square {
+				border: 1px solid #555555;
+				height: 90px;
+                width: 90px;
+                background-color: yellow;
+            }
+
+            #begin_game {
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%);
+                margin-top: 20px;
+            }
+
+		</style>
+			
+	</head>
+	
+	<body onload="startGame();">
+		
+        <h1>Connect Four</h1>
+        <div id="output"></div> <!-- this div will output the game is over --> 
+		
+		<button id="start_game" onclick="javascript:location.reload(true)">Start New Game</button>;
+
+		<!-- All the action takes place in the grid, -->
+		<div id="grid">
+			<!-- The game_info div allows game-specific information to easily be displayed -->
+			<div id="game_info">
+			</div>
+			<!-- The game table is the actual grid or board. The top row (and tablehead - 'thead') is reserved for the 
+			buttons to drop the game pieces into the slot  -->
+			<table id="game_table">
+				<thead>
+					<tr>
+					    <td><button onclick="slot(0);">Slot</button></td>
+						<td><button onclick="slot(1);">Slot</button></td>
+						<td><button onclick="slot(2);">Slot</button></td>
+						<td><button onclick="slot(3);">Slot</button></td>
+						<td><button onclick="slot(4);">Slot</button></td>
+						<td><button onclick="slot(5);">Slot</button></td>
+						<td><button onclick="slot(6);">Slot</button></td>
+					</tr>
+				</thead>
+				
+				<script>
+                    
+				//JS will be used to write the code for the grid/board
+				
+				    for (var row=0; row<=5; row++) {
+					/* function will write HTML code to the browser. 
+					*/
+					document.writeln("<tr>");	
+					for (var col=0; col<=6; col++) {
+						//write each table data element - with the row and col variables in the ID so it can be accessed later.
+						document.writeln("<td id='square_" + row + "_"+ col +"' class='board_square'></td>");							
+					}
+					//write the closing table row tag.
+					document.writeln("</tr>");	
+				}						
+										
+				</script>
+			</table>
+			<!-- game_status is a place for the game to provide status updates. -->
+            <div id="game_status"></div>
+            <button id="begin_game" onclick="startGame();">Reset or Repeat</button>
+		</div>
+	</body>
+</html>
